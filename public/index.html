@@ -37,9 +37,10 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
-    let localStream, pc, currentRoom;
-   const cfg = {
+   const socket = io();
+let localStream, pc, currentRoom;
+
+const cfg = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
@@ -66,70 +67,114 @@
   ]
 };
 
-    async function findPartner() {
-      if (!localStream) {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        document.getElementById('localVideo').srcObject = localStream;
-      }
-      socket.emit('find-partner');
-      setStatus('Suche Partner...');
-      setBtns(false, false, true);
+async function findPartner() {
+  if (!localStream) {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      document.getElementById('localVideo').srcObject = localStream;
+    } catch(e) {
+      alert('Kamera/Mikrofon Fehler: ' + e.message);
+      return;
     }
+  }
+  socket.emit('find-partner');
+  setStatus('Suche Partner...');
+  setBtns(false, false, true);
+}
 
-    function makePeer() {
-      if (pc) pc.close();
-      pc = new RTCPeerConnection(cfg);
-      localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
-      pc.ontrack = e => {
-        document.getElementById('remoteVideo').srcObject = e.streams[0];
-        setStatus('Verbunden!');
-        setBtns(false, true, true);
-      };
-      pc.onicecandidate = ({ candidate }) => {
-        if (candidate) socket.emit('ice-candidate', { room: currentRoom, candidate });
-      };
-    }
+function makePeer() {
+  if (pc) { pc.close(); pc = null; }
+  pc = new RTCPeerConnection(cfg);
 
-    socket.on('waiting', () => setStatus('Warte auf Partner...'));
-    socket.on('partner-found', async ({ room, isInitiator }) => {
-      currentRoom = room;
-      makePeer();
-      if (isInitiator) {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        socket.emit('offer', { room, offer });
-      }
-    });
-    socket.on('offer', async offer => {
-      await pc.setRemoteDescription(offer);
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      socket.emit('answer', { room: currentRoom, answer });
-    });
-    socket.on('answer', answer => pc.setRemoteDescription(answer));
-    socket.on('ice-candidate', c => pc.addIceCandidate(c));
-    socket.on('partner-left', () => { setStatus('Partner hat getrennt...'); findPartner(); });
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
 
-    function nextPartner() {
-      socket.emit('next', { room: currentRoom });
-      document.getElementById('remoteVideo').srcObject = null;
-      findPartner();
+  pc.ontrack = (event) => {
+    console.log('Remote Track erhalten:', event.streams);
+    const remoteVideo = document.getElementById('remoteVideo');
+    if (event.streams && event.streams[0]) {
+      remoteVideo.srcObject = event.streams[0];
+      remoteVideo.play().catch(e => console.log('Play error:', e));
     }
-    function hangUp() {
-      if (pc) pc.close();
-      if (localStream) localStream.getTracks().forEach(t => t.stop());
-      localStream = null;
-      document.getElementById('remoteVideo').srcObject = null;
-      document.getElementById('localVideo').srcObject = null;
-      setStatus('Willkommen bei SIWV – klicke auf Starten!');
-      setBtns(true, false, false);
+    setStatus('Verbunden!');
+    setBtns(false, true, true);
+  };
+
+  pc.onicecandidate = ({ candidate }) => {
+    if (candidate) {
+      socket.emit('ice-candidate', { room: currentRoom, candidate });
     }
-    function setStatus(t) { document.getElementById('status').textContent = t; }
-    function setBtns(start, next, end) {
-      document.getElementById('btnStart').disabled = !start;
-      document.getElementById('btnNext').disabled  = !next;
-      document.getElementById('btnEnd').disabled   = !end;
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.log('ICE State:', pc.iceConnectionState);
+    setStatus('ICE: ' + pc.iceConnectionState);
+    if (pc.iceConnectionState === 'connected') {
+      setStatus('Verbunden!');
     }
+  };
+}
+
+socket.on('waiting', () => setStatus('Warte auf Partner...'));
+
+socket.on('partner-found', async ({ room, isInitiator }) => {
+  currentRoom = room;
+  makePeer();
+  if (isInitiator) {
+    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+    await pc.setLocalDescription(offer);
+    socket.emit('offer', { room, offer });
+  }
+});
+
+socket.on('offer', async (offer) => {
+  await pc.setRemoteDescription(new RTCSessionDescription(offer));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  socket.emit('answer', { room: currentRoom, answer });
+});
+
+socket.on('answer', async (answer) => {
+  await pc.setRemoteDescription(new RTCSessionDescription(answer));
+});
+
+socket.on('ice-candidate', async (candidate) => {
+  try {
+    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch(e) {
+    console.log('ICE Fehler:', e);
+  }
+});
+
+socket.on('partner-left', () => {
+  setStatus('Partner hat getrennt...');
+  document.getElementById('remoteVideo').srcObject = null;
+  findPartner();
+});
+
+function nextPartner() {
+  socket.emit('next', { room: currentRoom });
+  document.getElementById('remoteVideo').srcObject = null;
+  findPartner();
+}
+
+function hangUp() {
+  if (pc) { pc.close(); pc = null; }
+  if (localStream) localStream.getTracks().forEach(t => t.stop());
+  localStream = null;
+  document.getElementById('remoteVideo').srcObject = null;
+  document.getElementById('localVideo').srcObject = null;
+  setStatus('Willkommen bei SIWV – klicke auf Starten!');
+  setBtns(true, false, false);
+}
+
+function setStatus(t) { document.getElementById('status').textContent = t; }
+function setBtns(start, next, end) {
+  document.getElementById('btnStart').disabled = !start;
+  document.getElementById('btnNext').disabled  = !next;
+  document.getElementById('btnEnd').disabled   = !end;
+}
   </script>
 </body>
 </html>
