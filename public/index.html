@@ -39,7 +39,21 @@
   <script>
     const socket = io();
     let localStream, pc, currentRoom;
-    const cfg = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    const cfg = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    {
+      urls: 'turn:relay.metered.ca:80',
+      username: 'e005037a7167582faa2fa409',
+      credential: 'jehlFvnUS7KbnGrz'
+    },
+    {
+      urls: 'turn:relay.metered.ca:443',
+      username: 'e005037a7167582faa2fa409',
+      credential: 'jehlFvnUS7KbnGrz'
+    }
+  ]
+};
 
     async function findPartner() {
       if (!localStream) {
