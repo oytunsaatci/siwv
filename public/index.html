@@ -4,172 +4,417 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIWV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: sans-serif; background: #0f0f0f; color: white;
-           display: flex; flex-direction: column; height: 100vh; }
-    .videos { display: flex; flex: 1; gap: 4px; background: #000; position: relative; }
-    #remoteVideo { width: 100%; object-fit: cover; background: #111; }
-    #localVideo { width: 200px; position: absolute; bottom: 20px; right: 20px;
-                  border-radius: 12px; border: 2px solid #fff; }
-    #status { text-align: center; padding: 10px; background: #111; color: #aaa; font-size: 14px; }
-    .controls { display: flex; align-items: center; justify-content: center;
-                gap: 16px; padding: 16px; background: #1a1a1a; }
-    button { padding: 12px 28px; border-radius: 50px; border: none; font-size: 15px;
-             font-weight: 600; cursor: pointer; transition: all .2s; }
-    #btnStart { background: #534AB7; color: white; }
-    #btnNext  { background: #2a2a2a; color: white; }
-    #btnEnd   { background: #e53e3e; color: white; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #080808;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #remoteVideo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #111;
+      z-index: 0;
+    }
+
+    #localVideo {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      width: 180px;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+      z-index: 10;
+      background: #1a1a1a;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .overlay-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 20px 24px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      color: white;
+    }
+
+    #status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #666;
+      transition: background 0.3s;
+    }
+
+    .status-dot.connected { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+    .status-dot.searching { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .start-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      background: #080808;
+      transition: opacity 0.5s;
+    }
+
+    .start-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .start-logo {
+      font-size: 52px;
+      font-weight: 600;
+      letter-spacing: 8px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .start-sub {
+      font-size: 15px;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 48px;
+      font-weight: 300;
+    }
+
+    .btn-start-big {
+      background: white;
+      color: #080808;
+      border: none;
+      padding: 16px 48px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-start-big:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 40px rgba(255,255,255,0.2);
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 24px;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .btn {
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+
+    .btn-next {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+    }
+
+    .btn-next:hover:not(:disabled) {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.03);
+    }
+
+    .btn-end {
+      background: rgba(239,68,68,0.85);
+      backdrop-filter: blur(10px);
+      color: white;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 14px;
+    }
+
+    .btn-end:hover:not(:disabled) {
+      background: rgba(239,68,68,1);
+      transform: scale(1.03);
+    }
+
+    .btn-mic, .btn-cam {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-size: 18px;
+      justify-content: center;
+    }
+
+    .btn-mic:hover:not(:disabled), .btn-cam:hover:not(:disabled) {
+      background: rgba(255,255,255,0.22);
+      transform: scale(1.05);
+    }
+
+    .btn-mic.off, .btn-cam.off {
+      background: rgba(239,68,68,0.7);
+      border-color: rgba(239,68,68,0.5);
+    }
+
+    .waiting-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 12;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .waiting-overlay.show { opacity: 1; pointer-events: all; }
+
+    .spinner {
+      width: 48px; height: 48px;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .waiting-text { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; }
   </style>
 </head>
 <body>
-  <div id="status">Willkommen bei SIWV – klicke auf Starten!</div>
-  <div class="videos">
-    <video id="remoteVideo" autoplay playsinline></video>
-    <video id="localVideo"  autoplay muted playsinline></video>
+
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo" autoplay muted playsinline></video>
+
+  <div class="overlay-top">
+    <div class="logo">SIWV</div>
+    <div id="status-badge">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Bereit</span>
+    </div>
   </div>
+
+  <div class="start-screen" id="start-screen">
+    <div class="start-logo">SIWV</div>
+    <div class="start-sub">Triff neue Menschen weltweit</div>
+    <button class="btn-start-big" onclick="findPartner()">Jetzt starten</button>
+  </div>
+
+  <div class="waiting-overlay" id="waiting-overlay">
+    <div class="spinner"></div>
+    <div class="waiting-text">Suche einen Partner...</div>
+  </div>
+
   <div class="controls">
-    <button id="btnStart" onclick="findPartner()">▶ Starten</button>
-    <button id="btnNext"  onclick="nextPartner()" disabled>Weiter →</button>
-    <button id="btnEnd"   onclick="hangUp()"      disabled>✕ Beenden</button>
+    <button class="btn btn-mic" id="btnMic" onclick="toggleMic()" disabled title="Mikrofon">🎤</button>
+    <button class="btn btn-cam" id="btnCam" onclick="toggleCam()" disabled title="Kamera">📷</button>
+    <button class="btn btn-next" id="btnNext" onclick="nextPartner()" disabled>Weiter →</button>
+    <button class="btn btn-end"  id="btnEnd"  onclick="hangUp()"      disabled>✕ Beenden</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-   const socket = io();
-let localStream, pc, currentRoom;
+    const socket = io();
+    let localStream, pc, currentRoom;
+    let micOn = true, camOn = true;
 
-const cfg = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+    const cfg = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+      ]
+    };
+
+    async function findPartner() {
+      document.getElementById('start-screen').classList.add('hidden');
+      if (!localStream) {
+        try {
+          localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          document.getElementById('localVideo').srcObject = localStream;
+        } catch(e) {
+          alert('Bitte Kamera & Mikrofon erlauben!');
+          document.getElementById('start-screen').classList.remove('hidden');
+          return;
+        }
+      }
+      socket.emit('find-partner');
+      setStatus('searching', 'Suche...');
+      showWaiting(true);
+      setBtns(false, false);
+      document.getElementById('btnMic').disabled = false;
+      document.getElementById('btnCam').disabled = false;
     }
-  ]
-};
 
-async function findPartner() {
-  if (!localStream) {
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      document.getElementById('localVideo').srcObject = localStream;
-    } catch(e) {
-      alert('Kamera/Mikrofon Fehler: ' + e.message);
-      return;
+    function makePeer() {
+      if (pc) { pc.close(); pc = null; }
+      pc = new RTCPeerConnection(cfg);
+      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+      pc.ontrack = (event) => {
+        const rv = document.getElementById('remoteVideo');
+        if (rv.srcObject !== event.streams[0]) rv.srcObject = event.streams[0];
+        showWaiting(false);
+        setStatus('connected', 'Verbunden');
+        setBtns(true, true);
+      };
+      pc.onicecandidate = ({ candidate }) => {
+        if (candidate) socket.emit('ice-candidate', { room: currentRoom, candidate });
+      };
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+          setStatus('', 'Verbindung verloren');
+        }
+      };
     }
-  }
-  socket.emit('find-partner');
-  setStatus('Suche Partner...');
-  setBtns(false, false, true);
-}
 
-function makePeer() {
-  if (pc) { pc.close(); pc = null; }
-  pc = new RTCPeerConnection(cfg);
+    socket.on('waiting', () => { showWaiting(true); setStatus('searching', 'Suche Partner...'); });
 
-  localStream.getTracks().forEach(track => {
-    pc.addTrack(track, localStream);
-  });
+    socket.on('partner-found', async ({ room, isInitiator }) => {
+      currentRoom = room;
+      makePeer();
+      if (isInitiator) {
+        const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+        await pc.setLocalDescription(offer);
+        socket.emit('offer', { room, offer });
+      }
+    });
 
-  pc.ontrack = (event) => {
-    console.log('Remote Track erhalten:', event.streams);
-    const remoteVideo = document.getElementById('remoteVideo');
-    if (event.streams && event.streams[0]) {
-      remoteVideo.srcObject = event.streams[0];
-      remoteVideo.play().catch(e => console.log('Play error:', e));
+    socket.on('offer', async (offer) => {
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      socket.emit('answer', { room: currentRoom, answer });
+    });
+
+    socket.on('answer', async (answer) => {
+      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    });
+
+    socket.on('ice-candidate', async (candidate) => {
+      try { await pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch(e) {}
+    });
+
+    socket.on('partner-left', () => {
+      document.getElementById('remoteVideo').srcObject = null;
+      findPartner();
+    });
+
+    function toggleMic() {
+      micOn = !micOn;
+      localStream.getAudioTracks().forEach(t => t.enabled = micOn);
+      const btn = document.getElementById('btnMic');
+      btn.textContent = micOn ? '🎤' : '🔇';
+      btn.classList.toggle('off', !micOn);
     }
-    setStatus('Verbunden!');
-    setBtns(false, true, true);
-  };
 
-  pc.onicecandidate = ({ candidate }) => {
-    if (candidate) {
-      socket.emit('ice-candidate', { room: currentRoom, candidate });
+    function toggleCam() {
+      camOn = !camOn;
+      localStream.getVideoTracks().forEach(t => t.enabled = camOn);
+      const btn = document.getElementById('btnCam');
+      btn.textContent = camOn ? '📷' : '🚫';
+      btn.classList.toggle('off', !camOn);
     }
-  };
 
-  pc.oniceconnectionstatechange = () => {
-    console.log('ICE State:', pc.iceConnectionState);
-    setStatus('ICE: ' + pc.iceConnectionState);
-    if (pc.iceConnectionState === 'connected') {
-      setStatus('Verbunden!');
+    function nextPartner() {
+      socket.emit('next', { room: currentRoom });
+      document.getElementById('remoteVideo').srcObject = null;
+      findPartner();
     }
-  };
-}
 
-socket.on('waiting', () => setStatus('Warte auf Partner...'));
+    function hangUp() {
+      if (pc) { pc.close(); pc = null; }
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
+      localStream = null;
+      document.getElementById('remoteVideo').srcObject = null;
+      document.getElementById('localVideo').srcObject = null;
+      document.getElementById('btnMic').disabled = true;
+      document.getElementById('btnCam').disabled = true;
+      showWaiting(false);
+      setStatus('', 'Bereit');
+      setBtns(false, false);
+      document.getElementById('start-screen').classList.remove('hidden');
+    }
 
-socket.on('partner-found', async ({ room, isInitiator }) => {
-  currentRoom = room;
-  makePeer();
-  if (isInitiator) {
-    const offer = await pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
-    await pc.setLocalDescription(offer);
-    socket.emit('offer', { room, offer });
-  }
-});
+    function showWaiting(show) {
+      document.getElementById('waiting-overlay').classList.toggle('show', show);
+    }
 
-socket.on('offer', async (offer) => {
-  await pc.setRemoteDescription(new RTCSessionDescription(offer));
-  const answer = await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  socket.emit('answer', { room: currentRoom, answer });
-});
+    function setStatus(type, text) {
+      document.getElementById('status-text').textContent = text;
+      const dot = document.getElementById('status-dot');
+      dot.className = 'status-dot' + (type ? ' ' + type : '');
+    }
 
-socket.on('answer', async (answer) => {
-  await pc.setRemoteDescription(new RTCSessionDescription(answer));
-});
-
-socket.on('ice-candidate', async (candidate) => {
-  try {
-    await pc.addIceCandidate(new RTCIceCandidate(candidate));
-  } catch(e) {
-    console.log('ICE Fehler:', e);
-  }
-});
-
-socket.on('partner-left', () => {
-  setStatus('Partner hat getrennt...');
-  document.getElementById('remoteVideo').srcObject = null;
-  findPartner();
-});
-
-function nextPartner() {
-  socket.emit('next', { room: currentRoom });
-  document.getElementById('remoteVideo').srcObject = null;
-  findPartner();
-}
-
-function hangUp() {
-  if (pc) { pc.close(); pc = null; }
-  if (localStream) localStream.getTracks().forEach(t => t.stop());
-  localStream = null;
-  document.getElementById('remoteVideo').srcObject = null;
-  document.getElementById('localVideo').srcObject = null;
-  setStatus('Willkommen bei SIWV – klicke auf Starten!');
-  setBtns(true, false, false);
-}
-
-function setStatus(t) { document.getElementById('status').textContent = t; }
-function setBtns(start, next, end) {
-  document.getElementById('btnStart').disabled = !start;
-  document.getElementById('btnNext').disabled  = !next;
-  document.getElementById('btnEnd').disabled   = !end;
-}
+    function setBtns(next, end) {
+      document.getElementById('btnNext').disabled = !next;
+      document.getElementById('btnEnd').disabled  = !end;
+    }
   </script>
 </body>
 </html>
