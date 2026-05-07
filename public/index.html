@@ -283,14 +283,30 @@
     let micOn = true, camOn = true;
 
     const cfg = {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-      ]
-    };
+  iceServers: [
+    { urls: "stun:stun.relay.metered.ca:80" },
+    {
+      urls: "turn:global.relay.metered.ca:80",
+      username: "e005037a7167582faa2fa409",
+      credential: "jehlFvnUS7KbnGrz"
+    },
+    {
+      urls: "turn:global.relay.metered.ca:80?transport=tcp",
+      username: "e005037a7167582faa2fa409",
+      credential: "jehlFvnUS7KbnGrz"
+    },
+    {
+      urls: "turn:global.relay.metered.ca:443",
+      username: "e005037a7167582faa2fa409",
+      credential: "jehlFvnUS7KbnGrz"
+    },
+    {
+      urls: "turns:global.relay.metered.ca:443?transport=tcp",
+      username: "e005037a7167582faa2fa409",
+      credential: "jehlFvnUS7KbnGrz"
+    }
+  ]
+};
 
     async function findPartner() {
       document.getElementById('start-screen').classList.add('hidden');
