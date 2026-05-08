@@ -31,10 +31,10 @@
     .center-area{display:flex;flex-direction:column;align-items:center;flex:1;justify-content:center;min-height:0;padding:8px 0;}
 
     /* Animated Logo */
-    .logo-wrap{position:relative;width:80px;height:80px;margin-bottom:16px;flex-shrink:0;}
+    .logo-wrap{position:relative;width:90px;height:90px;margin-bottom:6px;flex-shrink:0;}
     .logo-wrap svg{position:absolute;inset:0;width:100%;height:100%;}
-    .ring-outer{animation:rotateOuter 18s linear infinite;transform-origin:40px 40px;}
-    .ring-inner{animation:rotateInner 11s linear infinite reverse;transform-origin:40px 40px;}
+    .ring-outer{animation:rotateOuter 18s linear infinite;transform-origin:45px 45px;}
+    .ring-inner{animation:rotateInner 11s linear infinite reverse;transform-origin:45px 45px;}
     @keyframes rotateOuter{from{transform:rotateX(70deg) rotateZ(0deg)}to{transform:rotateX(70deg) rotateZ(360deg)}}
     @keyframes rotateInner{from{transform:rotateX(65deg) rotateZ(0deg)}to{transform:rotateX(65deg) rotateZ(360deg)}}
 
@@ -174,7 +174,7 @@
 
     /* ── VIDEO CHAT ── */
     #remoteVideo{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;background:#0D0D0B;z-index:0;transition:all .35s cubic-bezier(.4,0,.2,1);}
-    #localVideo{position:fixed;width:150px;height:150px;border-radius:50%;object-fit:cover;z-index:10;background:#1a1a15;box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 0 2px rgba(201,169,110,.3);cursor:grab;transform:scaleX(-1);transition:box-shadow .2s;display:none;}
+    #localVideo{position:fixed;width:150px;height:150px;border-radius:50%;object-fit:cover;z-index:15;background:#1a1a15;box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 0 2px rgba(201,169,110,.3);cursor:grab;transform:scaleX(-1);transition:box-shadow .2s;display:none;}
     #localVideo.visible{display:block;}
     #localVideo.dragging{cursor:grabbing;box-shadow:0 16px 60px rgba(0,0,0,.9),0 0 0 2px rgba(201,169,110,.5);transition:box-shadow .2s;}
     #localVideo.swapped{width:100%!important;height:100%!important;border-radius:0!important;z-index:0;cursor:pointer;top:0!important;left:0!important;transform:scaleX(-1);transition:all .35s cubic-bezier(.4,0,.2,1);}
@@ -186,7 +186,7 @@
     .sdot.connected{background:#4ADE80;box-shadow:0 0 6px #4ADE80;}
     .sdot.searching{background:var(--gold);box-shadow:0 0 6px var(--gold);animation:glow 1s infinite;}
     @keyframes glow{0%,100%{opacity:1}50%{opacity:.5}}
-    .wait-ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:12;background:rgba(13,13,11,.88);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;}
+    .wait-ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:8;background:rgba(13,13,11,.82);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s;}
     .wait-ov.show{opacity:1;pointer-events:all;}
     .spin{width:44px;height:44px;border:1.5px solid rgba(201,169,110,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite;margin-bottom:20px;}
     @keyframes spin{to{transform:rotate(360deg)}}
@@ -214,28 +214,70 @@
   </div>
   <div class="center-area">
     <div class="logo-wrap">
-      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Static planet body -->
-        <circle cx="40" cy="40" r="12" fill="url(#venusGrad)" opacity=".95"/>
-        <!-- Outer ring - tilted ellipse, slow rotation -->
-        <g class="ring-outer">
-          <ellipse cx="40" cy="40" rx="36" ry="9" stroke="#C9A96E" stroke-width="1.2" opacity=".5" fill="none"/>
-        </g>
-        <!-- Middle ring - slightly different tilt -->
-        <g class="ring-inner">
-          <ellipse cx="40" cy="40" rx="26" ry="6" stroke="#E8C98A" stroke-width="1" opacity=".4" fill="none"/>
-        </g>
-        <!-- Planet glow center -->
-        <circle cx="40" cy="40" r="12" fill="url(#venusGrad)"/>
-        <circle cx="40" cy="40" r="6" fill="#F5F0E8" opacity=".9"/>
-        <circle cx="37" cy="37" r="2" fill="white" opacity=".5"/>
+      <svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <radialGradient id="venusGrad" cx="40%" cy="35%" r="60%">
-            <stop offset="0%" stop-color="#E8C98A"/>
-            <stop offset="60%" stop-color="#C9A96E"/>
-            <stop offset="100%" stop-color="#8B6914"/>
+          <!-- Venus planet gradient - warm golden amber like real Venus -->
+          <radialGradient id="vGrad" cx="38%" cy="32%" r="65%">
+            <stop offset="0%"   stop-color="#FFF3C4"/>
+            <stop offset="25%"  stop-color="#F0C96A"/>
+            <stop offset="55%"  stop-color="#C9901E"/>
+            <stop offset="80%"  stop-color="#A06B10"/>
+            <stop offset="100%" stop-color="#6B4308"/>
+          </radialGradient>
+          <!-- Ring gradient for depth -->
+          <linearGradient id="rGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#E8C98A" stop-opacity=".1"/>
+            <stop offset="30%"  stop-color="#E8C98A" stop-opacity=".9"/>
+            <stop offset="50%"  stop-color="#FFF0B0" stop-opacity="1"/>
+            <stop offset="70%"  stop-color="#C9A96E" stop-opacity=".9"/>
+            <stop offset="100%" stop-color="#C9A96E" stop-opacity=".1"/>
+          </linearGradient>
+          <linearGradient id="rGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#C9A96E" stop-opacity=".05"/>
+            <stop offset="30%"  stop-color="#C9A96E" stop-opacity=".7"/>
+            <stop offset="50%"  stop-color="#E8C98A" stop-opacity=".8"/>
+            <stop offset="70%"  stop-color="#C9A96E" stop-opacity=".7"/>
+            <stop offset="100%" stop-color="#C9A96E" stop-opacity=".05"/>
+          </linearGradient>
+          <!-- Atmosphere glow -->
+          <radialGradient id="atmGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="70%"  stop-color="#C9781E" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#E8A030" stop-opacity=".25"/>
           </radialGradient>
         </defs>
+
+        <!-- Outer ring (rotating slowly) -->
+        <g class="ring-outer">
+          <ellipse cx="45" cy="45" rx="42" ry="10" stroke="url(#rGrad1)" stroke-width="2.5" fill="none"/>
+          <ellipse cx="45" cy="45" rx="42" ry="10" stroke="#FFF0B0" stroke-width="0.5" fill="none" opacity=".4"/>
+        </g>
+
+        <!-- Venus atmosphere glow -->
+        <circle cx="45" cy="45" r="18" fill="url(#atmGrad)"/>
+
+        <!-- Venus planet body -->
+        <circle cx="45" cy="45" r="14" fill="url(#vGrad)"/>
+
+        <!-- Cloud bands on Venus surface -->
+        <ellipse cx="45" cy="40" rx="12" ry="3" fill="#F5D070" opacity=".15"/>
+        <ellipse cx="45" cy="46" rx="13" ry="2.5" fill="#D4920A" opacity=".12"/>
+        <ellipse cx="45" cy="51" rx="11" ry="2" fill="#F5D070" opacity=".1"/>
+
+        <!-- Specular highlight -->
+        <ellipse cx="40" cy="39" rx="5" ry="3.5" fill="white" opacity=".2" transform="rotate(-20 40 39)"/>
+        <ellipse cx="39" cy="38" rx="2.5" ry="1.5" fill="white" opacity=".35" transform="rotate(-20 39 38)"/>
+
+        <!-- Inner ring (rotating reverse, slightly faster) -->
+        <g class="ring-inner">
+          <ellipse cx="45" cy="45" rx="30" ry="7" stroke="url(#rGrad2)" stroke-width="1.8" fill="none"/>
+        </g>
+
+        <!-- Planet edge overlay to make rings look behind/in-front -->
+        <circle cx="45" cy="45" r="14" fill="url(#vGrad)" opacity=".0"/>
+        <!-- Bottom half of outer ring hidden behind planet -->
+        <clipPath id="topHalf">
+          <rect x="0" y="0" width="90" height="45"/>
+        </clipPath>
       </svg>
     </div>
     <div class="brand">SIWV</div>
