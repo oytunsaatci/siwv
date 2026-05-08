@@ -4,201 +4,612 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>SIWV</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #F5F0E8;
+      --warm: #E8DFD0;
+      --gold: #C9A96E;
+      --gold-light: #E8C98A;
+      --dark: #0D0D0B;
+      --dark2: #141410;
+      --dark3: #1C1C17;
+      --text-muted: rgba(245,240,232,0.45);
+      --text-sub: rgba(245,240,232,0.65);
+      --border: rgba(201,169,110,0.2);
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: #080808;
-      color: white;
+      background: var(--dark);
+      color: var(--cream);
+      width: 100vw;
       height: 100dvh;
       overflow: hidden;
+      touch-action: none;
+      user-select: none;
+    }
+
+    /* ── Background ── */
+    .bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 0%, rgba(201,169,110,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 80%, rgba(201,169,110,0.05) 0%, transparent 60%),
+        linear-gradient(180deg, #0D0D0B 0%, #111109 50%, #0A0A08 100%);
+      z-index: 0;
+    }
+
+    .bg-texture {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    /* ── Start Screen ── */
+    .start-screen {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
-      touch-action: manipulation;
-    }
-    #remoteVideo, #localVideo {
-      position: absolute;
-      object-fit: cover;
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    #remoteVideo {
-      inset: 0; width: 100%; height: 100%;
-      background: #111; z-index: 0;
-    }
-    #localVideo {
-      width: 110px; height: 110px;
-      border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.3);
+      align-items: center;
+      justify-content: space-between;
       z-index: 10;
-      background: #1a1a1a;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-      cursor: pointer;
-      transform: scaleX(-1);
-    }
-    #localVideo.swapped {
-      width: 100%; height: 100%;
-      border-radius: 0; border: none;
-      z-index: 0; transform: scaleX(-1); cursor: pointer;
-    }
-    #remoteVideo.swapped {
-      width: 110px; height: 110px;
-      border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.3);
-      z-index: 10;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-      cursor: pointer;
-    }
-    #localVideo.pos-br { bottom: 90px; right: 20px; }
-    #localVideo.pos-bl { bottom: 90px; left: 20px; }
-    #localVideo.pos-tr { top: 80px; right: 20px; }
-    #localVideo.pos-tl { top: 80px; left: 20px; }
-    #remoteVideo.pos-br { bottom: 90px; right: 20px; }
-    #remoteVideo.pos-bl { bottom: 90px; left: 20px; }
-    #remoteVideo.pos-tr { top: 80px; right: 20px; }
-    #remoteVideo.pos-tl { top: 80px; left: 20px; }
-    .pos-picker {
-      position: absolute; z-index: 30;
-      display: none;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px; padding: 10px;
-      background: rgba(20,20,20,0.9);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 16px;
-    }
-    .pos-picker.show { display: grid; }
-    .pos-btn {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: white; font-size: 18px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s;
-    }
-    .pos-btn:hover { background: rgba(255,255,255,0.25); }
-    .pos-btn.active { background: white; color: #080808; }
-    .overlay-top {
-      position: absolute; top: 0; left: 0; right: 0;
-      padding: 16px 20px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-      z-index: 20;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .logo { font-size: 20px; font-weight: 600; letter-spacing: 3px; }
-    #status-badge {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 6px 14px; border-radius: 50px;
-      font-size: 13px; color: rgba(255,255,255,0.8);
-    }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #666; transition: background 0.3s; }
-    .status-dot.connected { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
-    .status-dot.searching { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: pulse 1s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    .start-screen {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 15; background: #080808; transition: opacity 0.5s;
+      padding: 0 0 32px 0;
+      transition: opacity 0.6s ease;
     }
     .start-screen.hidden { opacity: 0; pointer-events: none; }
-    .start-logo {
-      font-size: 52px; font-weight: 600; letter-spacing: 8px; margin-bottom: 12px;
-      background: linear-gradient(135deg, #fff 0%, #aaa 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+
+    /* Top Bar */
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 20px 24px;
+      gap: 10px;
     }
-    .start-sub { font-size: 15px; color: rgba(255,255,255,0.4); margin-bottom: 48px; font-weight: 300; }
-    .btn-start-big {
-      background: white; color: #080808; border: none;
-      padding: 16px 48px; border-radius: 50px;
-      font-size: 16px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; letter-spacing: 0.5px;
+
+    .btn-topbar {
+      background: rgba(245,240,232,0.06);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      padding: 9px 20px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
     }
-    .btn-start-big:hover { transform: scale(1.04); box-shadow: 0 0 40px rgba(255,255,255,0.2); }
+    .btn-topbar:hover { background: rgba(201,169,110,0.15); border-color: var(--gold); }
+    .btn-shop { color: var(--gold); border-color: rgba(201,169,110,0.35); }
+    .btn-shop::before { content: '◆ '; font-size: 10px; }
+
+    /* Center */
+    .center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+      justify-content: center;
+      padding-bottom: 20px;
+    }
+
+    .logo-mark {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .logo-mark svg { width: 100%; height: 100%; }
+
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 58px;
+      font-weight: 300;
+      letter-spacing: 10px;
+      color: var(--cream);
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .online-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+    }
+
+    .online-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #4ADE80;
+      box-shadow: 0 0 8px #4ADE80;
+      animation: pulse-green 2s infinite;
+    }
+    @keyframes pulse-green { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.2)} }
+
+    #onlineCount { color: var(--cream); font-weight: 500; }
+
+    /* ── Bottom Controls ── */
+    .bottom {
+      width: 100%;
+      padding: 0 20px 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Filter Row */
+    .filter-row {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .filter-btn {
+      flex: 1;
+      background: rgba(245,240,232,0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+      color: var(--cream);
+      font-family: 'Inter', sans-serif;
+      text-align: left;
+      position: relative;
+    }
+    .filter-btn:hover { background: rgba(201,169,110,0.1); border-color: rgba(201,169,110,0.4); }
+    .filter-btn:active { transform: scale(0.98); }
+
+    .filter-icon { font-size: 16px; flex-shrink: 0; }
+    .filter-content { flex: 1; min-width: 0; }
+    .filter-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+    .filter-value { font-size: 14px; font-weight: 400; color: var(--cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .filter-arrow { font-size: 10px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* Umkreis Slider */
+    .umkreis-card {
+      background: rgba(245,240,232,0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .umkreis-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .umkreis-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .umkreis-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .umkreis-value {
+      font-size: 13px;
+      color: var(--gold);
+      font-weight: 500;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .slider-wrap { position: relative; height: 20px; display: flex; align-items: center; }
+
+    .slider-track {
+      position: absolute;
+      left: 0; right: 0;
+      height: 3px;
+      background: rgba(245,240,232,0.1);
+      border-radius: 2px;
+    }
+
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      transition: width 0.05s;
+      pointer-events: none;
+    }
+
+    input[type=range] {
+      position: absolute;
+      left: 0; right: 0;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+      height: 20px;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--cream);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      border: 2px solid var(--gold);
+      transition: transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type=range]::-moz-range-thumb {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--cream);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      border: 2px solid var(--gold);
+    }
+
+    /* Start Button */
+    .btn-start {
+      width: 100%;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      background-size: 200% 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: 'Inter', sans-serif;
+      color: var(--dark);
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 24px rgba(201,169,110,0.25);
+    }
+    .btn-start:hover {
+      background-position: 100% 0;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(201,169,110,0.35);
+    }
+    .btn-start:active { transform: translateY(0); }
+    .btn-start-icon { font-size: 18px; }
+
+    /* ── Dropdown Sheets ── */
+    .sheet-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .sheet-overlay.show { opacity: 1; pointer-events: all; }
+
+    .sheet {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: var(--dark2);
+      border-top: 1px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      padding: 16px 20px 40px;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      z-index: 31;
+      max-height: 75dvh;
+      overflow-y: auto;
+    }
+    .sheet.show { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 36px; height: 4px;
+      background: rgba(245,240,232,0.15);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+
+    .sheet-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--cream);
+      margin-bottom: 16px;
+      letter-spacing: 0.05em;
+    }
+
+    .option-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      font-size: 15px;
+      color: var(--text-sub);
+    }
+    .option-item:hover { background: rgba(201,169,110,0.08); }
+    .option-item.selected {
+      background: rgba(201,169,110,0.12);
+      border-color: rgba(201,169,110,0.3);
+      color: var(--cream);
+    }
+    .option-item.selected::after { content: '✓'; color: var(--gold); font-size: 14px; }
+
+    .option-flag { margin-right: 10px; font-size: 18px; }
+
+    .country-search {
+      background: rgba(245,240,232,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--cream);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      width: 100%;
+      margin-bottom: 12px;
+      outline: none;
+    }
+    .country-search::placeholder { color: var(--text-muted); }
+    .country-search:focus { border-color: rgba(201,169,110,0.5); }
+
+    /* ── Video Chat Screen ── */
+    #remoteVideo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #0D0D0B;
+      z-index: 0;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    #localVideo {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      z-index: 10;
+      background: #1a1a15;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 0 2px rgba(201,169,110,0.3);
+      cursor: grab;
+      transform: scaleX(-1);
+      bottom: 100px;
+      right: 20px;
+      transition: box-shadow 0.2s;
+    }
+    #localVideo.dragging { cursor: grabbing; box-shadow: 0 16px 60px rgba(0,0,0,0.9), 0 0 0 2px rgba(201,169,110,0.5); transition: box-shadow 0.2s; }
+    #localVideo.swapped { width: 100%; height: 100%; border-radius: 0; z-index: 0; cursor: pointer; bottom: 0; right: 0; transform: scaleX(-1); transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
+    #remoteVideo.swapped { width: 150px; height: 150px; border-radius: 50%; z-index: 10; box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 0 2px rgba(201,169,110,0.3); cursor: pointer; transition: all 0.35s cubic-bezier(0.4,0,0.2,1); }
+
+    .chat-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 16px 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .chat-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; letter-spacing: 4px; text-transform: uppercase; color: var(--cream); }
+
+    #status-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(13,13,11,0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      padding: 6px 14px; border-radius: 50px;
+      font-size: 13px; color: var(--text-sub);
+      pointer-events: all;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; transition: background 0.3s; }
+    .status-dot.connected { background: #4ADE80; box-shadow: 0 0 6px #4ADE80; }
+    .status-dot.searching { background: var(--gold); box-shadow: 0 0 6px var(--gold); animation: glow 1s infinite; }
+    @keyframes glow { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
     .waiting-overlay {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      z-index: 12; background: rgba(8,8,8,0.85);
+      z-index: 12; background: rgba(13,13,11,0.88);
       backdrop-filter: blur(8px);
       opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
     .waiting-overlay.show { opacity: 1; pointer-events: all; }
     .spinner {
-      width: 48px; height: 48px;
-      border: 2px solid rgba(255,255,255,0.1);
-      border-top-color: white; border-radius: 50%;
-      animation: spin 0.8s linear infinite; margin-bottom: 20px;
+      width: 44px; height: 44px;
+      border: 1.5px solid rgba(201,169,110,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite; margin-bottom: 20px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .waiting-text { font-size: 16px; color: rgba(255,255,255,0.7); font-weight: 300; }
-    .controls {
+    .waiting-text { font-size: 15px; color: var(--text-sub); font-weight: 300; letter-spacing: 0.05em; }
+
+    .chat-controls {
       position: absolute; bottom: 0; left: 0; right: 0;
       padding: 16px 20px;
-      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+      background: linear-gradient(to top, rgba(0,0,0,0.88), transparent);
       z-index: 20;
       display: flex; align-items: center; justify-content: center; gap: 10px;
     }
-    .btn {
+
+    .cbtn {
       border: none; cursor: pointer;
-      font-family: 'Inter', sans-serif; font-weight: 500;
+      font-family: 'Inter', sans-serif;
       transition: all 0.2s;
-      display: flex; align-items: center; gap: 6px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
-    .btn-icon {
-      background: rgba(255,255,255,0.12);
+    .cbtn:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
+    .cbtn-icon {
+      background: rgba(245,240,232,0.08);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: white; width: 46px; height: 46px;
-      border-radius: 50%; font-size: 18px; justify-content: center;
+      border: 1px solid rgba(245,240,232,0.12);
+      color: var(--cream); width: 46px; height: 46px;
+      border-radius: 50%; font-size: 17px;
     }
-    .btn-icon:hover:not(:disabled) { background: rgba(255,255,255,0.22); transform: scale(1.05); }
-    .btn-icon.off { background: rgba(239,68,68,0.7); border-color: rgba(239,68,68,0.5); }
-    .btn-next {
-      background: rgba(255,255,255,0.12);
+    .cbtn-icon:hover:not(:disabled) { background: rgba(245,240,232,0.16); transform: scale(1.05); }
+    .cbtn-icon.off { background: rgba(220,50,50,0.6); border-color: rgba(220,50,50,0.4); }
+    .cbtn-next {
+      background: rgba(245,240,232,0.08);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(245,240,232,0.15);
+      color: var(--cream); padding: 12px 24px;
+      border-radius: 50px; font-size: 14px;
+    }
+    .cbtn-next:hover:not(:disabled) { background: rgba(245,240,232,0.16); transform: scale(1.03); }
+    .cbtn-end {
+      background: rgba(220,50,50,0.75);
+      backdrop-filter: blur(10px);
       color: white; padding: 12px 24px;
       border-radius: 50px; font-size: 14px;
     }
-    .btn-next:hover:not(:disabled) { background: rgba(255,255,255,0.2); transform: scale(1.03); }
-    .btn-end {
-      background: rgba(239,68,68,0.85);
-      backdrop-filter: blur(10px);
-      color: white; padding: 12px 24px;
-      border-radius: 50px; font-size: 14px;
-    }
-    .btn-end:hover:not(:disabled) { background: rgba(239,68,68,1); transform: scale(1.03); }
+    .cbtn-end:hover:not(:disabled) { background: rgba(220,50,50,1); transform: scale(1.03); }
+
+    /* Chat screen hidden by default */
+    .chat-ui { display: none; }
+    .chat-ui.active { display: block; }
   </style>
 </head>
 <body>
-  <video id="remoteVideo" autoplay playsinline></video>
-  <video id="localVideo" autoplay muted playsinline class="pos-br"></video>
 
-  <div class="pos-picker" id="posPicker">
-    <button class="pos-btn" data-pos="tl" onclick="setPos('tl')">↖</button>
-    <button class="pos-btn" data-pos="tr" onclick="setPos('tr')">↗</button>
-    <button class="pos-btn" data-pos="bl" onclick="setPos('bl')">↙</button>
-    <button class="pos-btn active" data-pos="br" onclick="setPos('br')">↘</button>
+  <div class="bg"></div>
+  <div class="bg-texture"></div>
+
+  <!-- ── Start Screen ── -->
+  <div class="start-screen" id="start-screen">
+    <div class="top-bar">
+      <button class="btn-topbar btn-shop" type="button">Shop</button>
+      <button class="btn-topbar" type="button" id="btnLogin">Einloggen</button>
+    </div>
+
+    <div class="center">
+      <div class="logo-mark">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="36" cy="36" r="22" fill="none" stroke="#C9A96E" stroke-width="1"/>
+          <ellipse cx="36" cy="36" rx="36" ry="10" fill="none" stroke="#C9A96E" stroke-width="1" opacity="0.5"/>
+          <circle cx="36" cy="36" r="8" fill="#C9A96E" opacity="0.9"/>
+          <circle cx="36" cy="36" r="4" fill="#F5F0E8"/>
+        </svg>
+      </div>
+      <div class="brand-name">SIWV</div>
+      <div class="online-badge">
+        <div class="online-dot"></div>
+        <span id="onlineCount">0</span>
+        <span>&nbsp;sind jetzt online</span>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="filter-row">
+        <button class="filter-btn" id="btnGender" type="button">
+          <span class="filter-icon">⚥</span>
+          <div class="filter-content">
+            <div class="filter-label">Geschlecht</div>
+            <div class="filter-value" id="genderVal">Alle</div>
+          </div>
+          <span class="filter-arrow">▾</span>
+        </button>
+
+        <button class="filter-btn" id="btnCountry" type="button">
+          <span class="filter-icon">🌍</span>
+          <div class="filter-content">
+            <div class="filter-label">Land</div>
+            <div class="filter-value" id="countryVal">Alle Länder</div>
+          </div>
+          <span class="filter-arrow">▾</span>
+        </button>
+      </div>
+
+      <div class="umkreis-card">
+        <div class="umkreis-top">
+          <div class="umkreis-left">
+            <span style="font-size:15px">📍</span>
+            <span class="umkreis-label">Umkreis</span>
+          </div>
+          <span class="umkreis-value" id="umkreisVal">Weltweit</span>
+        </div>
+        <div class="slider-wrap">
+          <div class="slider-track"></div>
+          <div class="slider-fill" id="sliderFill" style="width:0%"></div>
+          <input type="range" id="umkreisSlider" min="0" max="500" value="0" step="5">
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;">
+          <span style="font-size:11px;color:var(--text-muted)">Weltweit</span>
+          <span style="font-size:11px;color:var(--text-muted)">500 km</span>
+        </div>
+      </div>
+
+      <button class="btn-start" id="btnStart" type="button">
+        <span class="btn-start-icon">◈</span>
+        Video-Chat starten
+      </button>
+    </div>
   </div>
 
-  <div class="overlay-top">
-    <div class="logo">SIWV</div>
+  <!-- ── Gender Sheet ── -->
+  <div class="sheet-overlay" id="genderOverlay"></div>
+  <div class="sheet" id="genderSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Geschlecht</div>
+    <div class="option-list">
+      <div class="option-item selected" data-val="Alle" onclick="selectGender(this)">Alle</div>
+      <div class="option-item" data-val="Männlich" onclick="selectGender(this)">♂ Männlich</div>
+      <div class="option-item" data-val="Weiblich" onclick="selectGender(this)">♀ Weiblich</div>
+    </div>
+  </div>
+
+  <!-- ── Country Sheet ── -->
+  <div class="sheet-overlay" id="countryOverlay"></div>
+  <div class="sheet" id="countrySheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Land auswählen</div>
+    <input type="text" class="country-search" id="countrySearch" placeholder="Land suchen...">
+    <div class="option-list" id="countryList"></div>
+  </div>
+
+  <!-- ── Video Chat UI ── -->
+  <video id="remoteVideo" autoplay playsinline></video>
+  <video id="localVideo"  autoplay muted playsinline></video>
+
+  <div class="chat-top chat-ui" id="chatTop">
+    <div class="chat-logo">SIWV</div>
     <div id="status-badge">
       <div class="status-dot" id="status-dot"></div>
       <span id="status-text">Bereit</span>
     </div>
-  </div>
-
-  <div class="start-screen" id="start-screen">
-    <div class="start-logo">SIWV</div>
-    <div class="start-sub">Triff neue Menschen weltweit</div>
-    <button class="btn-start-big" id="btnStartMain" type="button">Jetzt starten</button>
   </div>
 
   <div class="waiting-overlay" id="waiting-overlay">
@@ -206,26 +617,21 @@
     <div class="waiting-text">Suche einen Partner...</div>
   </div>
 
-  <div class="controls">
-    <button class="btn btn-icon" id="btnMic"  type="button" disabled>🎤</button>
-    <button class="btn btn-icon" id="btnCam"  type="button" disabled>📷</button>
-    <button class="btn btn-icon" id="btnFlip" type="button" disabled title="Kamera wechseln">🔄</button>
-    <button class="btn btn-next" id="btnNext" type="button" disabled>Weiter →</button>
-    <button class="btn btn-end"  id="btnEnd"  type="button" disabled>✕</button>
+  <div class="chat-controls chat-ui" id="chatControls">
+    <button class="cbtn cbtn-icon" id="btnMic"  type="button" disabled>🎤</button>
+    <button class="cbtn cbtn-icon" id="btnCam"  type="button" disabled>📷</button>
+    <button class="cbtn cbtn-icon" id="btnFlip" type="button" disabled>🔄</button>
+    <button class="cbtn cbtn-next" id="btnNext" type="button" disabled>Weiter →</button>
+    <button class="cbtn cbtn-end"  id="btnEnd"  type="button" disabled>✕</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // ── State ──
     var socket = io();
-    var localStream = null;
-    var pc = null;
-    var currentRoom = null;
-    var micOn = true;
-    var camOn = true;
-    var currentPos = 'br';
-    var swapped = false;
-    var facingMode = 'user';
-    var pickerVisible = false;
+    var localStream = null, pc = null, currentRoom = null;
+    var micOn = true, camOn = true, swapped = false, facingMode = 'user';
+    var selectedGender = 'Alle', selectedCountry = 'Alle Länder', umkreis = 0;
 
     var cfg = {
       iceServers: [
@@ -237,217 +643,321 @@
       ]
     };
 
-    var localVid = document.getElementById('localVideo');
+    var localVid  = document.getElementById('localVideo');
     var remoteVid = document.getElementById('remoteVideo');
-    var picker = document.getElementById('posPicker');
 
-    document.getElementById('btnStartMain').addEventListener('click', function() { findPartner(); });
-    document.getElementById('btnMic').addEventListener('click', function() { toggleMic(); });
-    document.getElementById('btnCam').addEventListener('click', function() { toggleCam(); });
-    document.getElementById('btnFlip').addEventListener('click', function() { flipCamera(); });
-    document.getElementById('btnNext').addEventListener('click', function() { nextPartner(); });
-    document.getElementById('btnEnd').addEventListener('click', function() { hangUp(); });
-
-    localVid.addEventListener('click', function(e) {
-      if (swapped) { doSwap(); return; }
-      e.stopPropagation();
-      pickerVisible = !pickerVisible;
-      picker.classList.toggle('show', pickerVisible);
-      positionPicker();
-    });
-
-    remoteVid.addEventListener('click', function() {
-      if (swapped) { doSwap(); return; }
-      picker.classList.remove('show');
-      pickerVisible = false;
-    });
-
-    document.addEventListener('click', function() {
-      picker.classList.remove('show');
-      pickerVisible = false;
-    });
-
-    function positionPicker() {
-      if (currentPos === 'br') { picker.style.bottom = '160px'; picker.style.right = '20px'; picker.style.top = ''; picker.style.left = ''; }
-      else if (currentPos === 'bl') { picker.style.bottom = '160px'; picker.style.left = '20px'; picker.style.top = ''; picker.style.right = ''; }
-      else if (currentPos === 'tr') { picker.style.top = '150px'; picker.style.right = '20px'; picker.style.bottom = ''; picker.style.left = ''; }
-      else if (currentPos === 'tl') { picker.style.top = '150px'; picker.style.left = '20px'; picker.style.bottom = ''; picker.style.right = ''; }
+    // ── Simulated online count ──
+    var baseCount = 3240;
+    function updateOnline() {
+      baseCount += Math.floor(Math.random() * 11) - 5;
+      if (baseCount < 2800) baseCount = 2800;
+      document.getElementById('onlineCount').textContent = baseCount.toLocaleString('de-DE');
     }
+    updateOnline();
+    setInterval(updateOnline, 4000);
 
-    function setPos(pos) {
-      currentPos = pos;
-      localVid.classList.remove('pos-tl', 'pos-tr', 'pos-bl', 'pos-br');
-      localVid.classList.add('pos-' + pos);
-      document.querySelectorAll('.pos-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.pos === pos);
+    // ── Countries ──
+    var countries = [
+      { flag:'🌍', name:'Alle Länder' },
+      { flag:'🇩🇪', name:'Deutschland' }, { flag:'🇦🇹', name:'Österreich' }, { flag:'🇨🇭', name:'Schweiz' },
+      { flag:'🇺🇸', name:'USA' }, { flag:'🇬🇧', name:'Großbritannien' }, { flag:'🇫🇷', name:'Frankreich' },
+      { flag:'🇮🇹', name:'Italien' }, { flag:'🇪🇸', name:'Spanien' }, { flag:'🇳🇱', name:'Niederlande' },
+      { flag:'🇧🇷', name:'Brasilien' }, { flag:'🇹🇷', name:'Türkei' }, { flag:'🇯🇵', name:'Japan' },
+      { flag:'🇰🇷', name:'Südkorea' }, { flag:'🇮🇳', name:'Indien' }, { flag:'🇷🇺', name:'Russland' },
+      { flag:'🇲🇽', name:'Mexiko' }, { flag:'🇨🇦', name:'Kanada' }, { flag:'🇦🇺', name:'Australien' },
+      { flag:'🇵🇱', name:'Polen' }, { flag:'🇸🇪', name:'Schweden' }, { flag:'🇳🇴', name:'Norwegen' },
+      { flag:'🇩🇰', name:'Dänemark' }, { flag:'🇫🇮', name:'Finnland' }, { flag:'🇵🇹', name:'Portugal' },
+      { flag:'🇬🇷', name:'Griechenland' }, { flag:'🇨🇿', name:'Tschechien' }, { flag:'🇷🇴', name:'Rumänien' },
+      { flag:'🇳🇬', name:'Nigeria' }, { flag:'🇿🇦', name:'Südafrika' }, { flag:'🇸🇦', name:'Saudi-Arabien' },
+      { flag:'🇦🇪', name:'Vereinigte Arabische Emirate' }, { flag:'🇮🇩', name:'Indonesien' }, { flag:'🇵🇭', name:'Philippinen' },
+      { flag:'🇹🇭', name:'Thailand' }, { flag:'🇻🇳', name:'Vietnam' }, { flag:'🇲🇾', name:'Malaysia' },
+      { flag:'🇵🇰', name:'Pakistan' }, { flag:'🇧🇩', name:'Bangladesch' }, { flag:'🇪🇬', name:'Ägypten' },
+      { flag:'🇮🇱', name:'Israel' }, { flag:'🇮🇷', name:'Iran' }, { flag:'🇦🇷', name:'Argentinien' },
+      { flag:'🇨🇱', name:'Chile' }, { flag:'🇨🇴', name:'Kolumbien' }, { flag:'🇵🇪', name:'Peru' },
+    ];
+
+    function renderCountries(filter) {
+      var list = document.getElementById('countryList');
+      list.innerHTML = '';
+      var filtered = countries.filter(function(c) {
+        return !filter || c.name.toLowerCase().includes(filter.toLowerCase());
       });
-      picker.classList.remove('show');
-      pickerVisible = false;
+      filtered.forEach(function(c) {
+        var div = document.createElement('div');
+        div.className = 'option-item' + (c.name === selectedCountry ? ' selected' : '');
+        div.innerHTML = '<span class="option-flag">' + c.flag + '</span>' + c.name;
+        div.onclick = function() { selectCountry(c.name); };
+        list.appendChild(div);
+      });
     }
+
+    // ── Sheets ──
+    function openSheet(overlayId, sheetId) {
+      document.getElementById(overlayId).classList.add('show');
+      document.getElementById(sheetId).classList.add('show');
+    }
+    function closeSheet(overlayId, sheetId) {
+      document.getElementById(overlayId).classList.remove('show');
+      document.getElementById(sheetId).classList.remove('show');
+    }
+
+    document.getElementById('btnGender').addEventListener('click', function() { openSheet('genderOverlay','genderSheet'); });
+    document.getElementById('genderOverlay').addEventListener('click', function() { closeSheet('genderOverlay','genderSheet'); });
+    document.getElementById('btnCountry').addEventListener('click', function() { renderCountries(''); openSheet('countryOverlay','countrySheet'); });
+    document.getElementById('countryOverlay').addEventListener('click', function() { closeSheet('countryOverlay','countrySheet'); });
+
+    document.getElementById('countrySearch').addEventListener('input', function() {
+      renderCountries(this.value);
+    });
+
+    function selectGender(el) {
+      document.querySelectorAll('#genderSheet .option-item').forEach(function(i) { i.classList.remove('selected'); });
+      el.classList.add('selected');
+      selectedGender = el.dataset.val;
+      document.getElementById('genderVal').textContent = selectedGender;
+      setTimeout(function() { closeSheet('genderOverlay','genderSheet'); }, 200);
+    }
+
+    function selectCountry(name) {
+      selectedCountry = name;
+      document.getElementById('countryVal').textContent = name.length > 14 ? name.substring(0,13)+'…' : name;
+      renderCountries(document.getElementById('countrySearch').value);
+      setTimeout(function() { closeSheet('countryOverlay','countrySheet'); }, 200);
+    }
+
+    // ── Umkreis Slider ──
+    var slider = document.getElementById('umkreisSlider');
+    var fill   = document.getElementById('sliderFill');
+    slider.addEventListener('input', function() {
+      umkreis = parseInt(this.value);
+      var pct = (umkreis / 500) * 100;
+      fill.style.width = pct + '%';
+      document.getElementById('umkreisVal').textContent = umkreis === 0 ? 'Weltweit' : umkreis + ' km';
+    });
+
+    // ── Drag & Snap ──
+    var isDragging = false, dragStartX = 0, dragStartY = 0, vidStartX = 0, vidStartY = 0, didMove = false;
+    var SNAP_MARGIN = 20, CTRL_H = 80;
+
+    function initPos() {
+      localVid.style.left   = (window.innerWidth - 150 - SNAP_MARGIN) + 'px';
+      localVid.style.top    = (window.innerHeight - 150 - CTRL_H - SNAP_MARGIN) + 'px';
+      localVid.style.right  = '';
+      localVid.style.bottom = '';
+    }
+
+    function getSnap() {
+      var vw = window.innerWidth, vh = window.innerHeight, s = 150;
+      var cx = parseFloat(localVid.style.left) || 0;
+      var cy = parseFloat(localVid.style.top)  || 0;
+      var sL = SNAP_MARGIN, sR = vw - s - SNAP_MARGIN;
+      var sT = 80 + SNAP_MARGIN, sB = vh - s - CTRL_H - SNAP_MARGIN;
+      var d = [
+        { l: sL, t: sT, d: Math.hypot(cx-sL,cy-sT) },
+        { l: sR, t: sT, d: Math.hypot(cx-sR,cy-sT) },
+        { l: sL, t: sB, d: Math.hypot(cx-sL,cy-sB) },
+        { l: sR, t: sB, d: Math.hypot(cx-sR,cy-sB) }
+      ];
+      d.sort(function(a,b){return a.d-b.d;});
+      return { left: d[0].l, top: d[0].t };
+    }
+
+    localVid.addEventListener('mousedown', function(e) {
+      if (swapped) return; e.preventDefault();
+      isDragging=true; didMove=false;
+      dragStartX=e.clientX; dragStartY=e.clientY;
+      vidStartX=parseFloat(localVid.style.left)||0;
+      vidStartY=parseFloat(localVid.style.top)||0;
+      localVid.classList.add('dragging');
+      localVid.style.transition='box-shadow 0.2s';
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      var dx=e.clientX-dragStartX, dy=e.clientY-dragStartY;
+      if (Math.abs(dx)>5||Math.abs(dy)>5) didMove=true;
+      localVid.style.left = Math.max(0,Math.min(window.innerWidth-150,vidStartX+dx))+'px';
+      localVid.style.top  = Math.max(0,Math.min(window.innerHeight-150,vidStartY+dy))+'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (!isDragging) return;
+      isDragging=false;
+      localVid.classList.remove('dragging');
+      localVid.style.transition='box-shadow 0.2s,width 0.35s,height 0.35s,border-radius 0.35s';
+      if (didMove) { var s=getSnap(); localVid.style.left=s.left+'px'; localVid.style.top=s.top+'px'; }
+      else { doSwap(); }
+    });
+
+    localVid.addEventListener('touchstart', function(e) {
+      if (swapped) return; e.preventDefault();
+      isDragging=true; didMove=false;
+      var t=e.touches[0];
+      dragStartX=t.clientX; dragStartY=t.clientY;
+      vidStartX=parseFloat(localVid.style.left)||0;
+      vidStartY=parseFloat(localVid.style.top)||0;
+      localVid.classList.add('dragging');
+      localVid.style.transition='box-shadow 0.2s';
+    }, {passive:false});
+
+    document.addEventListener('touchmove', function(e) {
+      if (!isDragging) return; e.preventDefault();
+      var t=e.touches[0], dx=t.clientX-dragStartX, dy=t.clientY-dragStartY;
+      if (Math.abs(dx)>5||Math.abs(dy)>5) didMove=true;
+      localVid.style.left = Math.max(0,Math.min(window.innerWidth-150,vidStartX+dx))+'px';
+      localVid.style.top  = Math.max(0,Math.min(window.innerHeight-150,vidStartY+dy))+'px';
+    }, {passive:false});
+
+    document.addEventListener('touchend', function() {
+      if (!isDragging) return;
+      isDragging=false;
+      localVid.classList.remove('dragging');
+      localVid.style.transition='box-shadow 0.2s,width 0.35s,height 0.35s,border-radius 0.35s';
+      if (didMove) { var s=getSnap(); localVid.style.left=s.left+'px'; localVid.style.top=s.top+'px'; }
+      else doSwap();
+    });
+
+    localVid.addEventListener('click',  function() { if (swapped) doSwap(); });
+    remoteVid.addEventListener('click', function() { if (swapped) doSwap(); });
 
     function doSwap() {
       swapped = !swapped;
       if (swapped) {
+        var s = getSnap();
         localVid.classList.add('swapped');
         remoteVid.classList.add('swapped');
-        remoteVid.classList.remove('pos-tl', 'pos-tr', 'pos-bl', 'pos-br');
-        remoteVid.classList.add('pos-' + currentPos);
+        remoteVid.style.left=s.left+'px'; remoteVid.style.top=s.top+'px';
+        remoteVid.style.right=''; remoteVid.style.bottom='';
       } else {
         localVid.classList.remove('swapped');
         remoteVid.classList.remove('swapped');
-        remoteVid.classList.remove('pos-tl', 'pos-tr', 'pos-bl', 'pos-br');
+        remoteVid.style.cssText='';
+        initPos();
       }
     }
 
-    function flipCamera() {
-      facingMode = facingMode === 'user' ? 'environment' : 'user';
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode }, audio: false })
-        .then(function(newStream) {
-          var newVideoTrack = newStream.getVideoTracks()[0];
-          localStream.getVideoTracks().forEach(function(t) { t.stop(); localStream.removeTrack(t); });
-          localStream.addTrack(newVideoTrack);
-          localVid.srcObject = null;
-          localVid.srcObject = localStream;
-          if (pc) {
-            var sender = pc.getSenders().find(function(s) { return s.track && s.track.kind === 'video'; });
-            if (sender) sender.replaceTrack(newVideoTrack);
-          }
-          localVid.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-        })
-        .catch(function(e) { console.log('Kamera wechsel fehler:', e); });
-    }
-
-    function findPartner() {
+    // ── WebRTC ──
+    function startChat() {
       document.getElementById('start-screen').classList.add('hidden');
+      document.querySelectorAll('.chat-ui').forEach(function(el) { el.classList.add('active'); });
+      initPos();
       if (!localStream) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true })
+        navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' }, audio:true })
           .then(function(stream) {
             localStream = stream;
-            localVid.srcObject = localStream;
+            localVid.srcObject = stream;
             socket.emit('find-partner');
-            setStatus('searching', 'Suche...');
+            setStatus('searching','Suche...');
             showWaiting(true);
-            setBtns(false, false);
-            document.getElementById('btnMic').disabled = false;
-            document.getElementById('btnCam').disabled = false;
-            document.getElementById('btnFlip').disabled = false;
+            setBtns(false,false);
+            ['btnMic','btnCam','btnFlip'].forEach(function(id){ document.getElementById(id).disabled=false; });
           })
-          .catch(function(e) {
+          .catch(function() {
             alert('Bitte Kamera und Mikrofon erlauben!');
             document.getElementById('start-screen').classList.remove('hidden');
+            document.querySelectorAll('.chat-ui').forEach(function(el){ el.classList.remove('active'); });
           });
       } else {
         socket.emit('find-partner');
-        setStatus('searching', 'Suche...');
-        showWaiting(true);
-        setBtns(false, false);
+        setStatus('searching','Suche...');
+        showWaiting(true); setBtns(false,false);
       }
     }
 
     function makePeer() {
-      if (pc) { pc.close(); pc = null; }
+      if (pc) { pc.close(); pc=null; }
       pc = new RTCPeerConnection(cfg);
-      localStream.getTracks().forEach(function(track) { pc.addTrack(track, localStream); });
-      pc.ontrack = function(event) {
-        if (remoteVid.srcObject !== event.streams[0]) remoteVid.srcObject = event.streams[0];
-        showWaiting(false);
-        setStatus('connected', 'Verbunden');
-        setBtns(true, true);
+      localStream.getTracks().forEach(function(t){ pc.addTrack(t,localStream); });
+      pc.ontrack = function(e) {
+        if (remoteVid.srcObject!==e.streams[0]) remoteVid.srcObject=e.streams[0];
+        showWaiting(false); setStatus('connected','Verbunden'); setBtns(true,true);
       };
       pc.onicecandidate = function(e) {
-        if (e.candidate) socket.emit('ice-candidate', { room: currentRoom, candidate: e.candidate });
+        if (e.candidate) socket.emit('ice-candidate',{room:currentRoom,candidate:e.candidate});
       };
       pc.oniceconnectionstatechange = function() {
-        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
-          setStatus('', 'Verbindung verloren');
-        }
+        if (pc.iceConnectionState==='disconnected'||pc.iceConnectionState==='failed') setStatus('','Verbindung verloren');
       };
     }
 
-    socket.on('waiting', function() { showWaiting(true); setStatus('searching', 'Suche Partner...'); });
-
-    socket.on('partner-found', function(data) {
-      currentRoom = data.room;
-      makePeer();
+    socket.on('waiting', function(){ showWaiting(true); setStatus('searching','Suche Partner...'); });
+    socket.on('partner-found', function(data){
+      currentRoom=data.room; makePeer();
       if (data.isInitiator) {
-        pc.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true })
-          .then(function(offer) { return pc.setLocalDescription(offer).then(function() { return offer; }); })
-          .then(function(offer) { socket.emit('offer', { room: currentRoom, offer: offer }); });
+        pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:true})
+          .then(function(o){ return pc.setLocalDescription(o).then(function(){return o;}); })
+          .then(function(o){ socket.emit('offer',{room:currentRoom,offer:o}); });
       }
     });
-
-    socket.on('offer', function(offer) {
+    socket.on('offer', function(offer){
       pc.setRemoteDescription(new RTCSessionDescription(offer))
-        .then(function() { return pc.createAnswer(); })
-        .then(function(answer) { return pc.setLocalDescription(answer).then(function() { return answer; }); })
-        .then(function(answer) { socket.emit('answer', { room: currentRoom, answer: answer }); });
+        .then(function(){ return pc.createAnswer(); })
+        .then(function(a){ return pc.setLocalDescription(a).then(function(){return a;}); })
+        .then(function(a){ socket.emit('answer',{room:currentRoom,answer:a}); });
+    });
+    socket.on('answer', function(a){ pc.setRemoteDescription(new RTCSessionDescription(a)); });
+    socket.on('ice-candidate', function(c){ try{pc.addIceCandidate(new RTCIceCandidate(c));}catch(e){} });
+    socket.on('partner-left', function(){
+      remoteVid.srcObject=null; if(swapped) doSwap();
+      socket.emit('find-partner'); setStatus('searching','Suche...'); showWaiting(true); setBtns(false,false);
     });
 
-    socket.on('answer', function(answer) {
-      pc.setRemoteDescription(new RTCSessionDescription(answer));
-    });
-
-    socket.on('ice-candidate', function(candidate) {
-      try { pc.addIceCandidate(new RTCIceCandidate(candidate)); } catch(e) {}
-    });
-
-    socket.on('partner-left', function() {
-      remoteVid.srcObject = null;
-      if (swapped) doSwap();
-      findPartner();
-    });
-
-    function toggleMic() {
-      micOn = !micOn;
-      localStream.getAudioTracks().forEach(function(t) { t.enabled = micOn; });
-      var btn = document.getElementById('btnMic');
-      btn.textContent = micOn ? '🎤' : '🔇';
-      btn.classList.toggle('off', !micOn);
+    function flipCamera() {
+      facingMode = facingMode==='user'?'environment':'user';
+      navigator.mediaDevices.getUserMedia({video:{facingMode:facingMode},audio:false})
+        .then(function(ns){
+          var nt=ns.getVideoTracks()[0];
+          localStream.getVideoTracks().forEach(function(t){t.stop();localStream.removeTrack(t);});
+          localStream.addTrack(nt);
+          localVid.srcObject=null; localVid.srcObject=localStream;
+          if(pc){var s=pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';});if(s)s.replaceTrack(nt);}
+          localVid.style.transform=facingMode==='user'?'scaleX(-1)':'scaleX(1)';
+        }).catch(function(e){console.log(e);});
     }
 
-    function toggleCam() {
-      camOn = !camOn;
-      localStream.getVideoTracks().forEach(function(t) { t.enabled = camOn; });
-      var btn = document.getElementById('btnCam');
-      btn.textContent = camOn ? '📷' : '🚫';
-      btn.classList.toggle('off', !camOn);
+    function toggleMic(){
+      micOn=!micOn;
+      localStream.getAudioTracks().forEach(function(t){t.enabled=micOn;});
+      var b=document.getElementById('btnMic'); b.textContent=micOn?'🎤':'🔇'; b.classList.toggle('off',!micOn);
     }
-
-    function nextPartner() {
-      socket.emit('next', { room: currentRoom });
-      remoteVid.srcObject = null;
-      if (swapped) doSwap();
-      findPartner();
+    function toggleCam(){
+      camOn=!camOn;
+      localStream.getVideoTracks().forEach(function(t){t.enabled=camOn;});
+      var b=document.getElementById('btnCam'); b.textContent=camOn?'📷':'🚫'; b.classList.toggle('off',!camOn);
     }
-
-    function hangUp() {
-      if (pc) { pc.close(); pc = null; }
-      if (localStream) localStream.getTracks().forEach(function(t) { t.stop(); });
-      localStream = null;
-      remoteVid.srcObject = null;
-      localVid.srcObject = null;
-      if (swapped) doSwap();
-      document.getElementById('btnMic').disabled = true;
-      document.getElementById('btnCam').disabled = true;
-      document.getElementById('btnFlip').disabled = true;
-      showWaiting(false);
-      setStatus('', 'Bereit');
-      setBtns(false, false);
+    function nextPartner(){
+      socket.emit('next',{room:currentRoom}); remoteVid.srcObject=null;
+      if(swapped) doSwap(); startChat();
+    }
+    function hangUp(){
+      if(pc){pc.close();pc=null;}
+      if(localStream) localStream.getTracks().forEach(function(t){t.stop();});
+      localStream=null; remoteVid.srcObject=null; localVid.srcObject=null;
+      if(swapped) doSwap();
+      ['btnMic','btnCam','btnFlip'].forEach(function(id){document.getElementById(id).disabled=true;});
+      showWaiting(false); setStatus('','Bereit'); setBtns(false,false);
       document.getElementById('start-screen').classList.remove('hidden');
+      document.querySelectorAll('.chat-ui').forEach(function(el){el.classList.remove('active');});
     }
 
-    function showWaiting(show) { document.getElementById('waiting-overlay').classList.toggle('show', show); }
-
-    function setStatus(type, text) {
-      document.getElementById('status-text').textContent = text;
-      var dot = document.getElementById('status-dot');
-      dot.className = 'status-dot' + (type ? ' ' + type : '');
+    function showWaiting(s){ document.getElementById('waiting-overlay').classList.toggle('show',s); }
+    function setStatus(type,text){
+      document.getElementById('status-text').textContent=text;
+      document.getElementById('status-dot').className='status-dot'+(type?' '+type:'');
+    }
+    function setBtns(next,end){
+      document.getElementById('btnNext').disabled=!next;
+      document.getElementById('btnEnd').disabled=!end;
     }
 
-    function setBtns(next, end) {
-      document.getElementById('btnNext').disabled = !next;
-      document.getElementById('btnEnd').disabled = !end;
-    }
+    document.getElementById('btnStart').addEventListener('click', startChat);
+    document.getElementById('btnMic').addEventListener('click',  toggleMic);
+    document.getElementById('btnCam').addEventListener('click',  toggleCam);
+    document.getElementById('btnFlip').addEventListener('click', flipCamera);
+    document.getElementById('btnNext').addEventListener('click', nextPartner);
+    document.getElementById('btnEnd').addEventListener('click',  hangUp);
+
+    window.addEventListener('resize', function(){ if(!swapped) initPos(); });
   </script>
 </body>
 </html>
