@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>SIWV</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,400;0,500;0,600;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{
@@ -33,12 +33,12 @@
     /* Animated Logo */
     .logo-wrap{position:relative;width:80px;height:80px;margin-bottom:16px;flex-shrink:0;}
     .logo-wrap svg{position:absolute;inset:0;width:100%;height:100%;}
-    .ring-outer{animation:rotateOuter 12s linear infinite;transform-origin:center;}
-    .ring-inner{animation:rotateInner 8s linear infinite reverse;transform-origin:center;}
-    @keyframes rotateOuter{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    @keyframes rotateInner{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .ring-outer{animation:rotateOuter 18s linear infinite;transform-origin:40px 40px;}
+    .ring-inner{animation:rotateInner 11s linear infinite reverse;transform-origin:40px 40px;}
+    @keyframes rotateOuter{from{transform:rotateX(70deg) rotateZ(0deg)}to{transform:rotateX(70deg) rotateZ(360deg)}}
+    @keyframes rotateInner{from{transform:rotateX(65deg) rotateZ(0deg)}to{transform:rotateX(65deg) rotateZ(360deg)}}
 
-    .brand{font-family:'Bodoni Moda',serif;font-size:52px;font-weight:400;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px;line-height:1;}
+    .brand{font-family:'Fraunces',serif;font-size:52px;font-weight:400;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px;line-height:1;}
     .online-badge{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);font-weight:300;}
     .odot{width:7px;height:7px;border-radius:50%;background:#4ADE80;box-shadow:0 0 8px #4ADE80;animation:pg 2s infinite;flex-shrink:0;}
     @keyframes pg{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.2)}}
@@ -87,7 +87,7 @@
     /* ── AUTH ── */
     #s-auth{align-items:center;justify-content:center;background:var(--dark2);overflow-y:auto;}
     .auth-box{width:100%;max-width:400px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;}
-    .auth-logo{font-family:'Bodoni Moda',serif;font-size:28px;font-weight:400;letter-spacing:4px;margin-bottom:6px;}
+    .auth-logo{font-family:'Fraunces',serif;font-size:28px;font-weight:400;letter-spacing:4px;margin-bottom:6px;}
     .auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px;text-align:center;}
     .auth-tabs{display:flex;background:rgba(245,240,232,.05);border-radius:10px;padding:4px;margin-bottom:24px;width:100%;}
     .auth-tab{flex:1;padding:9px;border:none;background:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;border-radius:7px;transition:all .2s;}
@@ -124,7 +124,7 @@
     /* ── PROFILE ── */
     #s-profile{align-items:center;justify-content:center;background:var(--dark2);overflow-y:auto;}
     .profile-box{width:100%;max-width:400px;padding:32px 24px;display:flex;flex-direction:column;gap:16px;}
-    .profile-title{font-family:'Bodoni Moda',serif;font-size:26px;font-weight:400;letter-spacing:2px;margin-bottom:4px;}
+    .profile-title{font-family:'Fraunces',serif;font-size:26px;font-weight:400;letter-spacing:2px;margin-bottom:4px;}
     .profile-sub{font-size:13px;color:var(--muted);margin-bottom:4px;}
     .inp-label{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
     .inp-group{display:flex;flex-direction:column;}
@@ -136,10 +136,10 @@
     #s-shop{background:var(--dark2);overflow-y:auto;}
     .shop-header{padding:20px 24px 0;display:flex;align-items:center;gap:16px;flex-shrink:0;}
     .shop-back{background:none;border:none;color:var(--cream);font-size:20px;cursor:pointer;padding:4px;}
-    .shop-title{font-family:'Bodoni Moda',serif;font-size:26px;font-weight:400;letter-spacing:3px;}
+    .shop-title{font-family:'Fraunces',serif;font-size:26px;font-weight:400;letter-spacing:3px;}
     .shop-balance{margin:16px 24px 0;padding:16px 20px;background:rgba(201,169,110,.08);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:space-between;}
     .bal-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
-    .bal-val{font-size:24px;font-weight:500;color:var(--gold);font-family:'Bodoni Moda',serif;}
+    .bal-val{font-size:24px;font-weight:500;color:var(--gold);font-family:'Fraunces',serif;}
     .shop-sub{padding:16px 24px 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
     .coin-grid{padding:0 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     .coin-card{background:rgba(245,240,232,.04);border:1px solid var(--border);border-radius:16px;padding:18px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .2s;position:relative;}
@@ -147,7 +147,7 @@
     .coin-card.popular{border-color:var(--gold);}
     .popular-tag{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--dark);font-size:10px;font-weight:500;padding:3px 12px;border-radius:0 0 8px 8px;letter-spacing:.05em;white-space:nowrap;}
     .coin-icon{font-size:32px;}
-    .coin-amount{font-family:'Bodoni Moda',serif;font-size:20px;color:var(--cream);}
+    .coin-amount{font-family:'Fraunces',serif;font-size:20px;color:var(--cream);}
     .coin-sub{font-size:11px;color:var(--muted);}
     .coin-price{font-size:14px;font-weight:500;color:var(--gold);}
     .shop-perks{padding:0 24px 40px;}
@@ -180,7 +180,7 @@
     #localVideo.swapped{width:100%!important;height:100%!important;border-radius:0!important;z-index:0;cursor:pointer;top:0!important;left:0!important;transform:scaleX(-1);transition:all .35s cubic-bezier(.4,0,.2,1);}
     #remoteVideo.swapped{width:150px!important;height:150px!important;border-radius:50%!important;z-index:10;box-shadow:0 8px 40px rgba(0,0,0,.7),0 0 0 2px rgba(201,169,110,.3);cursor:pointer;transition:all .35s cubic-bezier(.4,0,.2,1);}
     .chat-top{position:fixed;top:0;left:0;right:0;padding:16px 20px;background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);z-index:20;display:flex;align-items:center;justify-content:space-between;}
-    .chat-logo{font-family:'Bodoni Moda',serif;font-size:18px;font-weight:400;letter-spacing:3px;text-transform:uppercase;}
+    .chat-logo{font-family:'Fraunces',serif;font-size:18px;font-weight:400;letter-spacing:3px;text-transform:uppercase;}
     #sBadge{display:flex;align-items:center;gap:8px;background:rgba(13,13,11,.6);backdrop-filter:blur(10px);border:1px solid var(--border);padding:6px 14px;border-radius:50px;font-size:13px;color:var(--sub);}
     .sdot{width:7px;height:7px;border-radius:50%;background:#555;transition:background .3s;}
     .sdot.connected{background:#4ADE80;box-shadow:0 0 6px #4ADE80;}
@@ -215,20 +215,27 @@
   <div class="center-area">
     <div class="logo-wrap">
       <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Outer ring rotating -->
+        <!-- Static planet body -->
+        <circle cx="40" cy="40" r="12" fill="url(#venusGrad)" opacity=".95"/>
+        <!-- Outer ring - tilted ellipse, slow rotation -->
         <g class="ring-outer">
-          <ellipse cx="40" cy="40" rx="38" ry="11" stroke="#C9A96E" stroke-width="1" opacity=".4"/>
-          <circle cx="78" cy="40" r="3" fill="#C9A96E" opacity=".8"/>
+          <ellipse cx="40" cy="40" rx="36" ry="9" stroke="#C9A96E" stroke-width="1.2" opacity=".5" fill="none"/>
         </g>
-        <!-- Inner ring rotating reverse -->
+        <!-- Middle ring - slightly different tilt -->
         <g class="ring-inner">
-          <ellipse cx="40" cy="40" rx="26" ry="8" stroke="#C9A96E" stroke-width="1" opacity=".6"/>
-          <circle cx="14" cy="40" r="2.5" fill="#E8C98A" opacity=".9"/>
+          <ellipse cx="40" cy="40" rx="26" ry="6" stroke="#E8C98A" stroke-width="1" opacity=".4" fill="none"/>
         </g>
-        <!-- Static center -->
-        <circle cx="40" cy="40" r="18" stroke="#C9A96E" stroke-width=".8" opacity=".3"/>
-        <circle cx="40" cy="40" r="8" fill="#C9A96E" opacity=".85"/>
-        <circle cx="40" cy="40" r="4" fill="#F5F0E8"/>
+        <!-- Planet glow center -->
+        <circle cx="40" cy="40" r="12" fill="url(#venusGrad)"/>
+        <circle cx="40" cy="40" r="6" fill="#F5F0E8" opacity=".9"/>
+        <circle cx="37" cy="37" r="2" fill="white" opacity=".5"/>
+        <defs>
+          <radialGradient id="venusGrad" cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stop-color="#E8C98A"/>
+            <stop offset="60%" stop-color="#C9A96E"/>
+            <stop offset="100%" stop-color="#8B6914"/>
+          </radialGradient>
+        </defs>
       </svg>
     </div>
     <div class="brand">SIWV</div>
@@ -679,7 +686,10 @@ function startChat(){
         lv.classList.add('visible');
         socket.emit('find-partner');
         setStatus('searching','Suche...');
-        showWait(true);setBtns(false,false);
+        showWait(true);
+        // Enable end button so user can cancel search
+        document.getElementById('btnNext').disabled=true;
+        document.getElementById('btnEnd').disabled=false;
         ['btnMic','btnCam','btnFlip'].forEach(function(id){document.getElementById(id).disabled=false;});
       })
       .catch(function(){
@@ -711,15 +721,25 @@ function toggleMic(){micOn=!micOn;localStream.getAudioTracks().forEach(function(
 function toggleCam(){camOn=!camOn;localStream.getVideoTracks().forEach(function(t){t.enabled=camOn;});var b=document.getElementById('btnCam');b.textContent=camOn?'📷':'🚫';b.classList.toggle('off',!camOn);}
 function nextPartner(){socket.emit('next',{room:currentRoom});rv.srcObject=null;if(swapped)doSwap();startChat();}
 function hangUp(){
+  // Cancel any pending match
+  if(currentRoom){socket.emit('next',{room:currentRoom});}
+  socket.off('partner-found');socket.off('waiting');
   if(pc){pc.close();pc=null;}
   if(localStream)localStream.getTracks().forEach(function(t){t.stop();});
   localStream=null;rv.srcObject=null;lv.srcObject=null;lv.classList.remove('visible');
   if(swapped)doSwap();
+  currentRoom=null;
   ['btnMic','btnCam','btnFlip'].forEach(function(id){document.getElementById(id).disabled=true;});
   showWait(false);setStatus('','Bereit');setBtns(false,false);
   document.getElementById('chatTop').style.display='none';
   document.getElementById('chatCtrl').style.display='none';
   showScreen('s-start');
+  // Re-register socket listeners after hang up
+  setTimeout(reRegisterSocket, 100);
+}
+function reRegisterSocket(){
+  socket.on('waiting',function(){showWait(true);setStatus('searching','Suche Partner...');});
+  socket.on('partner-found',function(d){currentRoom=d.room;makePeer();if(d.isInitiator){pc.createOffer({offerToReceiveAudio:true,offerToReceiveVideo:true}).then(function(o){return pc.setLocalDescription(o).then(function(){return o;});}).then(function(o){socket.emit('offer',{room:currentRoom,offer:o});});}});
 }
 function showWait(s){document.getElementById('waitOv').classList.toggle('show',s);}
 function setStatus(t,x){document.getElementById('sTxt').textContent=x;document.getElementById('sDot').className='sdot'+(t?' '+t:'');}
