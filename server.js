@@ -10,21 +10,20 @@ app.use(express.static('public'));
 
 let waitingUser = null;
 const rooms = {};
+let onlineCount = 0;
 
 io.on('connection', (socket) => {
-  console.log('Nutzer verbunden:', socket.id);
+  onlineCount++;
+  io.emit('online-count', onlineCount);
 
   socket.on('find-partner', () => {
     if (waitingUser && waitingUser.id !== socket.id) {
       const room = 'room-' + Date.now();
       rooms[room] = [waitingUser.id, socket.id];
-      
       socket.join(room);
       waitingUser.join(room);
-
       waitingUser.emit('partner-found', { room, isInitiator: true });
       socket.emit('partner-found', { room, isInitiator: false });
-
       waitingUser = null;
     } else {
       waitingUser = socket;
@@ -32,17 +31,9 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('offer', ({ room, offer }) => {
-    socket.to(room).emit('offer', offer);
-  });
-
-  socket.on('answer', ({ room, answer }) => {
-    socket.to(room).emit('answer', answer);
-  });
-
-  socket.on('ice-candidate', ({ room, candidate }) => {
-    socket.to(room).emit('ice-candidate', candidate);
-  });
+  socket.on('offer', ({ room, offer }) => socket.to(room).emit('offer', offer));
+  socket.on('answer', ({ room, answer }) => socket.to(room).emit('answer', answer));
+  socket.on('ice-candidate', ({ room, candidate }) => socket.to(room).emit('ice-candidate', candidate));
 
   socket.on('next', ({ room }) => {
     socket.to(room).emit('partner-left');
@@ -53,6 +44,8 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    onlineCount = Math.max(0, onlineCount - 1);
+    io.emit('online-count', onlineCount);
     if (waitingUser?.id === socket.id) waitingUser = null;
     for (const [room, users] of Object.entries(rooms)) {
       if (users.includes(socket.id)) {
